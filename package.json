@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@electron-forge/cli": "^7.10.2"
+  }
+}
