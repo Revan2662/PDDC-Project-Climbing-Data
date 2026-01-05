@@ -13,7 +13,8 @@ parse_zipname <- function(zip_name, conditions, cohorts) {
   core <- zip_name %>%
     stringr::str_remove("_\\d*\\.avi-.zip$") %>%
     stringr::str_remove("\\.avi-.zip$") %>%
-    stringr::str_remove("\\.zip$")
+    stringr::str_remove("\\.zip$") %>%
+    stringr::str_remove("\\.mov$")
   cond_regex <- paste0("(", paste(conditions, collapse = "|"), ")")
   first_cond_match <- regexpr(cond_regex, core)
   if (first_cond_match[1] == -1) return(tibble(condition=character(), cohort=character(), fly_line=character()))
@@ -139,7 +140,7 @@ shinyApp(
         y_col <- sub("x", "y", x_col)
         current_data <- trajectories %>%
           select(time, all_of(x_col), all_of(y_col)) %>%
-          filter(floor(time) <= input$timeThreshold, !is.na(.[[x_col]]))
+          filter(round(time) <= input$timeThreshold, !is.na(.[[x_col]]))
         print(paste("Filtered Data for Fly:", flyName))
         print(head(current_data))
         if (nrow(current_data) > 1) {
@@ -176,9 +177,9 @@ shinyApp(
           change_list_temp <- rbind(change_list_temp,
                                     data.frame(
                                       Fly = flyName,
-                                      `X Change` = mean(XChange, na.rm = TRUE),
-                                      `Y Change` = mean(YChange, na.rm = TRUE),
-                                      Time = passed_time,
+                                      `X Change Average` = mean(XChange, na.rm = TRUE),
+                                      `Y Change Average` = mean(YChange, na.rm = TRUE),
+                                      `Passing Time` = passed_time,
                                       `X Speed Average` = mean(XSpeed, na.rm = TRUE),
                                       `Y Speed Average` = mean(YSpeed, na.rm = TRUE),
                                       Passed = passed_value,
@@ -219,7 +220,7 @@ shinyApp(
         meta_file <- file.path(tmpdir, "ZIP_Metadata.csv")
         write.csv(results_metadata(), meta_file, row.names = FALSE)
         # Save ROI
-        roi_file <- file.path(tmpdir, "ROI Coordinates.csv")
+        roi_file <- file.path(tmpdir, "ROI_Coordinates.csv")
         roi_tbl_flat <- roi_tbl_data() %>%
           mutate(
             roi_x_coords = sapply(roi_x_coords, function(x) paste(x, collapse = ",")),
